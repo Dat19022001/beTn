@@ -1,4 +1,4 @@
-//config\stripe.php
+
 <?php
  
 return [

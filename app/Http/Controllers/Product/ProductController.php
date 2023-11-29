@@ -42,10 +42,9 @@ class ProductController extends Controller
     //lấy thông tin sản phẩm có số trang 
     public function getProduct(Request $request)
     {
-        $perPage = 2; // Số sản phẩm trên mỗi trang (mặc định là 10)
-        $data = $request->json()->all();
-
-        $page = $data['page']; // Số trang muốn lấy (mặc định là 1)
+        $perPage = 1; // Số sản phẩm trên mỗi trang (mặc định là 10)
+        $data = $request->query('page');
+        $page = $data; // Số trang muốn lấy (mặc định là 1)  
         try {
             $products = Product::paginate($perPage, ['*'], 'page', $page);
             $transformedProducts = $products->getCollection()->transform(function ($product) {
@@ -60,6 +59,57 @@ class ProductController extends Controller
                 ];
             });
             return response()->json(['products' => $transformedProducts], 200);
+        } catch (\Exception $e) {
+            return response()->json(['message' => 'Get fail product'], 400);
+        }
+    }
+    public function getProductAll()
+    {
+        try {
+            $products = Product::all();
+
+            $transformedProducts = $products->map(function ($product) {
+                return [
+                    'id' => $product->id,
+                    'name' => $product->name,
+                    'image' => $product->image,
+                    'description' => $product->description,
+                    'price' => $product->price,
+                    'category_name' => $product->category->name,
+                    'producer' => $product->producer,
+                ];
+            });
+            // dd($transformedProducts);
+            return response()->json(['products' => $transformedProducts], 200);
+        } catch (\Exception $e) {
+            return response()->json(['message' => 'Get fail product'], 400);
+        }
+    }
+    // lấy thông tin sản phẩm mới
+    public function getProductNew(Request $request)
+    {
+        $cate = $request->query('cate');
+        try {
+            $products = Product::orderBy('created_at', 'desc')->get();
+
+            $transformedProducts = $products->map(function ($product) {
+                return [
+                    'id' => $product->id,
+                    'name' => $product->name,
+                    'image' => $product->image,
+                    'description' => $product->description,
+                    'price' => $product->price,
+                    'category_name' => $product->category->name,
+                    'producer' => $product->producer,
+                ];
+            });
+            // dd($transformedProducts);
+            $filteredProducts = $transformedProducts->filter(function ($product) use ($cate) {
+                $pattern = "/$cate/i";
+                return preg_match($pattern, $product['category_name']);
+            });
+            $filteredProducts = $filteredProducts->values()->slice(0, 4);
+            return response()->json(['products' => $filteredProducts], 200);
         } catch (\Exception $e) {
             return response()->json(['message' => 'Get fail product'], 400);
         }
@@ -127,12 +177,12 @@ class ProductController extends Controller
     // tìm kiếm theo tên sản phẩm
     public function searchProduct(Request $request)
     {
-        $data = $request->json()->all();
-        $products = Product::where('name', 'like', '%' . $data['search'] . "%")->get();
+        $search = $request->query("search");
+        $products = Product::where('name', 'like', '%' . $search . "%")->get();
         if ($products->isEmpty()) {
             return response()->json(["mess" => "Không có sản phẩm nào phù hợp"], 404);
         }
-       
+
         $transformedProducts = $products->map(function ($product) {
             return [
                 'id' => $product->id,
@@ -144,29 +194,32 @@ class ProductController extends Controller
                 'producer' => $product->producer,
             ];
         });
-       
+
         return response()->json(['products' => $transformedProducts], 200);
     }
+    //tìm kiếm theo cate
     public function byCategory(Request $request)
     {
-        $data = $request->json()->all();
-        $products = Product::where('category_id',$data['category_id'])->get();
-        if ($products->isEmpty()) {
-            return response()->json(["mess" => "Không có sản phẩm nào phù hợp"], 404);
-        }
-       
-        $transformedProducts = $products->map(function ($product) {
+        $category_id = $request->query('category_id');
+        $page = $request->query('page');
+        $perPage = 6;
+
+        $products = Product::where('category_id', $category_id)->paginate($perPage, ['*'], 'page', $page);
+
+        $transformedProducts = $products->getCollection()->transform(function ($product) {
             return [
                 'id' => $product->id,
                 'name' => $product->name,
                 'image' => $product->image,
                 'description' => $product->description,
                 'price' => $product->price,
-                'category_name' => $product->category->name, // Lấy tên danh mục
+                'category_name' => $product->category->name,
                 'producer' => $product->producer,
             ];
         });
-       
-        return response()->json(['products' => $transformedProducts], 200);
+        if (count($transformedProducts) > 0) {
+            return response()->json(['products' => $transformedProducts], 200);
+        }
+        return response()->json(["mess" => "Không có sản phẩm nào phù hợp"], 404);
     }
 }

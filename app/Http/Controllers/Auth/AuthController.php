@@ -31,4 +31,13 @@ class AuthController extends Controller
         }
         return response()->json(["mess" => "update thanh cong", "user" => $user]);
     }
+    public function getAll()
+    {
+        try {
+            $user = User::all();
+            return response()->json($user);
+        } catch (\Exception $e) {
+            return response()->json(['mess' => 'sai']);
+        }
+    }
 }

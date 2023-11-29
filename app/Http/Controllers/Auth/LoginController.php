@@ -18,9 +18,9 @@ class LoginController extends Controller
             // Đăng nhập thành công, tạo và trả về token
             $user = Auth::user();
             $currentTime = Carbon::now();// lấy thời gian hiện tại
-            // $expiresAt = $currentTime-> addHour();// thời gian hết hạn củ token
+            $expiresAt = $currentTime-> addHour();// thời gian hết hạn củ token
 
-            $token = $user->createToken('MyAppToken',["*"])->plainTextToken;
+            $token = $user->createToken('MyAppToken',["*"])->plainTextToken;//$expiresAt
             return response()->json(['token' => $token,'user'=> $user],200);
         }
 

@@ -29,6 +29,7 @@ class RegisterController extends Controller
                 'name' => $data['name'],
                 'email' => $data['email'],
                 'password' => Hash::make($data['password']),
+                'CV'=> false,
             ]);
             return response()->json(['message' => 'User registered successfully'],200);
         }

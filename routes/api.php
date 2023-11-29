@@ -25,8 +25,15 @@ use Illuminate\Support\Facades\Route;
 
 Route::post('/register', [RegisterController::class, "Register"]);
 Route::post('/login', [LoginController::class, 'login']);
+Route::prefix("/product")->group(function () {
+    Route::get("/{id}", [ProductController::class, 'getDetailProduct']);
+});
+Route::get('/new',[ProductController::class,'getProductNew']);
+Route::get('/search', [ProductController::class, 'searchProduct']);
+Route::get('/byCate', [ProductController::class, 'byCategory']);
 Route::middleware(['auth:sanctum'])->group(function () {
     Route::prefix('/user')->group(function () {
+        Route::get('',[AuthController::class, "getAll"]);
         Route::get('/{id}', [AuthController::class, "getProfile"]);
         Route::post('/{id}', [AuthController::class, "updateProfile"]);
     });
@@ -41,8 +48,7 @@ Route::middleware(['auth:sanctum'])->group(function () {
         Route::delete("/{id}", [ProductController::class, 'deleteProduct']);
         Route::put("/{id}", [ProductController::class, 'updateProduct']);
     });
-    Route::get('/search', [ProductController::class, 'searchProduct']);
-    Route::get('/byCate', [ProductController::class, 'byCategory']);
+    Route::get("/getAllProduct", [ProductController::class,'getProductAll']);
     Route::prefix("/addToCart")->group(function () {
         Route::post("", [CartController::class, 'addToCart']);
         Route::get("", [CartController::class, 'showCart']);
@@ -54,6 +60,6 @@ Route::middleware(['auth:sanctum'])->group(function () {
         Route::post('', [OrderController::class, 'createOrder']);
         Route::get("",[OrderController::class,'getOrder']);
         Route::get('/{id}', [OrderController::class, 'getOrderWithDetails']);
-        Route::get("/user/{id}",[OrderController::class,'getOrder']);
+        Route::get("/user/{id}",[OrderController::class,'getOrderUser']);
     });
 });

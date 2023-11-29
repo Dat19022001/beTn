@@ -59,6 +59,7 @@ class CartController extends Controller
         // Lấy thông tin của người dùng đã xác thực
         $user = auth()->user();
 
+
         if (!$user) {
             return response()->json(['message' => 'Người dùng không xác thực'], 401);
         }
@@ -100,12 +101,13 @@ class CartController extends Controller
             $cartItem->quantity += 1;
             $cartItem->save();
         } else {
-            if ($cartItem->quantity >= 1) {
+            if ($cartItem->quantity > 1) {
                 $cartItem->quantity -= 1;
                 $cartItem->save();
+            } else {
+                $cartItem->quantity = 1;
+                $cartItem->save();
             }
-            $cartItem->quantity = 1;
-            $cartItem->save();
         }
 
         return response()->json(['message' => 'Số lượng sản phẩm trong giỏ hàng đã được cập nhật', "data" =>  $cartItem], 200);
@@ -140,23 +142,21 @@ class CartController extends Controller
         }
         $data = $request->json()->all();
         $productIds = $data['dsId'];
-    
-    
+
+
         if (!empty($productIds)) {
             // Xóa nhiều sản phẩm từ giỏ hàng
             // $user->cart->cartItems()->whereIn('product_id', $productIds)->delete();
-            $dsProduct =$user->cart->cartItems()->whereIn('product_id', $productIds)->get()->toArray();
-            if(!empty($dsProduct)){
-                $user->cart->CartItems()->whereIn('product_id',$productIds)->delete();
-            }
-            else{
+            $dsProduct = $user->cart->cartItems()->whereIn('product_id', $productIds)->get()->toArray();
+            if (!empty($dsProduct)) {
+                $user->cart->CartItems()->whereIn('product_id', $productIds)->delete();
+            } else {
                 return response()->json(['message' => 'Xóa thất bại'], 200);
             }
-        }
-        else{
+        } else {
             return response()->json(['message' => 'Xóa thất bại'], 200);
         }
-    
+
         return response()->json(['message' => 'Các sản phẩm đã được xóa khỏi giỏ hàng'], 200);
     }
 }

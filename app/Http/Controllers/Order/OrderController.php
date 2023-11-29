@@ -53,8 +53,7 @@ class OrderController extends Controller
         $order->total = $order->total + $order->shipping_fee;
         if ($data['payment_method'] === 'COD') {
             $order->save();
-            return response()->json(['message' => 'Đơn hàng đã được tạo', 'order_id' => $order],200);
-            
+            return response()->json(['message' => 'Đơn hàng đã được tạo', 'order_id' => $order], 200);
         } else {
             $listItems = [];
 
@@ -95,44 +94,37 @@ class OrderController extends Controller
             $session = \Stripe\Checkout\Session::create([
                 'line_items'  => [$listItems],
                 'mode'        => 'payment',
-                'success_url' => "https://tutorial101.blogspot.com/2023/06/laravel-10-how-to-integrate-stripe.html",
-                'cancel_url'  => "https://www.youtube.com/watch?v=rQV9aI3LLnk&t=26s",
+                'success_url' => "http://localhost:3000/Success",
+                'cancel_url'  => "http://localhost:3000/Err",
             ]);
             $order->save();
             $order_url = $session->url;
-            return response()->json(['message' => 'Đơn hàng đã được tạo', 'order_id' => $order, 'order_url' => $order_url], 200);
+
+            return response()->json(['message' => 'Đơn hàng đã được tạo', 'order_id' => $order, 'order_url' => $order_url,], 200);
         }
     }
     public function getOrderWithDetails($id)
     {
         $order = Order::with('orderDetails')->find($id);
-
         if (!$order) {
             return response()->json(['message' => 'Không tìm thấy đơn hàng'], 404);
         }
-
         return response()->json(['order' => $order], 200);
     }
     public function getOrder()
     {
-
         $order = Order::with('orderDetails')->get();
-
         if (!$order) {
             return response()->json(['message' => 'Không tìm thấy đơn hàng'], 404);
         }
-
         return response()->json(['order' => $order], 200);
     }
     public function getOrderUser($id)
     {
-
         $order = Order::with('orderDetails')->where('user_id', $id)->get();
-
         if (!$order) {
             return response()->json(['message' => 'Không tìm thấy đơn hàng'], 404);
         }
-
         return response()->json(['order' => $order], 200);
     }
 }
